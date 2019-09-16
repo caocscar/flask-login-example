@@ -1,0 +1,43 @@
+<html>
+<head>
+  <title>Flask Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="static/css/login.css" rel="stylesheet" media="screen">
+</head>
+<body> 
+  {% if session['logged_in'] %}
+
+    You're logged in already!
+
+  {% else %}
+
+    <form action="/login" method="POST">
+                {{ form.csrf_token }}
+                {{ form.name }}
+    <div class="login">
+      <div class="login-screen">
+        <div class="app-title">
+          <h1>Login</h1>
+        </div>
+        <div class="login-form">
+          <div class="control-group">
+            <input type="text" class="login-field" value="" placeholder="email" name="username">
+            <label class="login-field-icon fui-user" for="login-name"></label>
+          </div>
+          <div class="control-group">
+            <input type="password" class="login-field" value="" placeholder="pwd" name="password">
+            <label class="login-field-icon fui-lock" for="login-pass"></label>
+          </div>
+          <input type="submit" value="Go Behind the Curtain" class="btn btn-primary btn-large btn-block">		 
+        </div>
+      </div>
+    </div>
+    </form>
+  {% endif %}
+
+  {% if error %}
+    <p><strong>Error: </strong>{{ error }}</p>
+  {% endif %}
+  </div>
+</body>
+</html>
