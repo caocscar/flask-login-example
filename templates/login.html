@@ -5,35 +5,35 @@
   <link href="static/css/login.css" rel="stylesheet" media="screen">
 </head>
 <body> 
-  {% if session['logged_in'] %}
-
-    You're logged in already!
-
-  {% else %}
-
-    <form action="/login" method="POST">
-                {{ form.csrf_token }}
-                {{ form.name }}
-    <div class="login">
-      <div class="login-screen">
-        <div class="app-title">
-          <h1>Login</h1>
+  <form action="/login" method="POST" novalidate>
+    {{ form.csrf_token }}
+    {{ form.name }}
+    {{ form.hidden_tag() }}
+  <div class="login">
+    <div class="login-screen">
+      <div class="app-title">
+        <h1>Login</h1>
+      </div>
+      <div class="login-form">
+        <div class="control-group">
+          <input type="text" class="login-field" value="" placeholder="email" name="username">
+          <label class="login-field-icon fui-user" for="login-name"></label>
         </div>
-        <div class="login-form">
-          <div class="control-group">
-            <input type="text" class="login-field" value="" placeholder="email" name="username">
-            <label class="login-field-icon fui-user" for="login-name"></label>
-          </div>
-          <div class="control-group">
-            <input type="password" class="login-field" value="" placeholder="pwd" name="password">
-            <label class="login-field-icon fui-lock" for="login-pass"></label>
-          </div>
-          <input type="submit" value="Go Behind the Curtain" class="btn btn-primary btn-large btn-block">		 
+        {% for error in form.username.errors %}
+          <p style="color: blue">[{{ error }}]</p>
+        {% endfor %}
+        <div class="control-group">
+          <input type="password" class="login-field" value="" placeholder="pwd" name="password">
+          <label class="login-field-icon fui-lock" for="login-pass"></label>
         </div>
+        {% for error in form.password.errors %}
+          <p style="color: red">[{{ error }}]</p>
+        {% endfor %}
+        <input type="submit" value="Go Behind the Curtain" class="btn btn-primary btn-large btn-block">		 
       </div>
     </div>
-    </form>
-  {% endif %}
+  </div>
+  </form>
 
   {% if error %}
     <p><strong>Error: </strong>{{ error }}</p>
