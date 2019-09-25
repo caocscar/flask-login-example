@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, request
 from flask_login import LoginManager, login_required, login_user, logout_user, UserMixin, current_user
 from flask_bcrypt import Bcrypt
 from flask_wtf import FlaskForm
@@ -6,7 +6,7 @@ from wtforms import StringField, PasswordField, SubmitField
 import os
 
 application = Flask(__name__)
-application.secret_key = b'whatisacsrf#$^@&^@#!&^:{>}'
+application.config['SECRET_KEY'] = os.urandom(18)
 login_manager = LoginManager()
 login_manager.init_app(application)
 login_manager.login_view = '/login'
@@ -14,27 +14,29 @@ bcrypt = Bcrypt(application)
 
 class User(UserMixin):
 
-    def __init__(self, email, username, pw_raw, authenticated):
+    def __init__(self, email, username, pw_raw, is_authenticated):
         self.email = email
         self.username = username
-        self.password = bcrypt.generate_password_hash(pw_raw).decode('UTF-8')  # 'UTF-8' needed for Python 3.X
-        self.authenticated = authenticated
+        self.password = bcrypt.generate_password_hash(pw_raw).decode('utf-8')  # convert from binary
+        self.is_authenticated = is_authenticated
 
     def get_id(self):
         return self.email
 
+    @property
     def is_authenticated(self):
-        return self.authenticated
+        print('getting value')
+        return self._is_authenticated
 
-    @staticmethod
-    def authenticate(username, pw_raw):
-        fetched_user = user1 #hardcoded user1
-        if fetched_user:
-            authenticated_user = bcrypt.check_password_hash(fetched_user.password, pw_raw)
-            fetched_user.authenticated = True
-        else:
-            authenticated_user = False
-        return fetched_user, authenticated_user
+    @is_authenticated.setter
+    def is_authenticated(self, value):
+        print('setting value')
+        self._is_authenticated = value
+
+    def authenticate(self, pw_raw):
+        tf = bcrypt.check_password_hash(self.password, pw_raw)
+        print('authuser', tf)
+        self.is_authenticated = tf
 
 class LoginForm(FlaskForm):
     username = StringField('Username')
@@ -48,28 +50,32 @@ def load_user(user_id):
     user1.email = user_id
     return user1
 
-@application.route('/', methods=['GET'])
+@application.route('/home', methods=['GET'])
 @login_required
 def hello():
     return render_template("hello.html")
-    
+
+@application.route('/beautiful', methods=['GET'])
+@login_required
+def beauty():
+    return render_template("beautiful.html")
+
 # Route for handling the login page logic
 @application.route('/login', methods=['GET', 'POST'])
 def login():
-    error = None
+    if current_user.is_authenticated:
+        return redirect(url_for('beauty'))
     form = LoginForm()
     if form.validate_on_submit():
-        fetched_user, authenticated_user = User.authenticate(form.username.data, form.password.data)
-        if fetched_user and authenticated_user:
-            login_user(fetched_user, remember=True)
-            return fetched_user and redirect(url_for('hello'))
-    return render_template('login.html', form=form, error=error)
+        user1.authenticate(form.password.data)
+        if user1 and user1.is_authenticated:
+            login_user(user1, remember=True)
+            return user1 and redirect(url_for('hello'))
+    return render_template('login.html', form=form, error=None)
 
 @application.route("/logout")
 @login_required
 def logout():
-    user = current_user
-    user.authenticated = False
     logout_user()
     return redirect(url_for('login'))
 
